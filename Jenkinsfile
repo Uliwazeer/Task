@@ -2,21 +2,15 @@ pipeline {
     agent any
 
     tools {
-        nodejs "nodejs" // Ensure NodeJS is configured in Jenkins Global Tools
-    }
-
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials') // Jenkins credential ID for Docker Hub
-        IMAGE_NAME = "aliwazeer/task-app"
+        nodejs "nodejs" // This must match the name you configured
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/nodejs-docker-task']],
-                    userRemoteConfigs: [[url: 'https://github.com/Uliwazeer/Task.git']]
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/nodejs-docker-task']],
+                          userRemoteConfigs: [[url: 'https://github.com/Uliwazeer/Task']]
                 ])
             }
         }
@@ -35,18 +29,7 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'npm test || echo "⚠️ No tests found, skipping."'
-            }
-        }
-
-        stage('Docker Build & Push') {
-            steps {
-                script {
-                    docker.build("${IMAGE_NAME}")
-                    docker.withRegistry('', DOCKERHUB_CREDENTIALS) {
-                        docker.image("${IMAGE_NAME}").push()
-                    }
-                }
+                sh 'npm test || echo "No tests found, skipping"'
             }
         }
     }
@@ -56,7 +39,7 @@ pipeline {
             echo '✅ Pipeline executed successfully!'
         }
         failure {
-            echo '❌ Pipeline failed!'
+            echo '❌ Pipeline failed.'
         }
     }
 }
