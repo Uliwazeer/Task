@@ -1,43 +1,28 @@
 pipeline {
     agent {
-        docker {
-            image 'node:18'  // or node:20
-            args '-u root'
+        docker { 
+            image 'node:18-alpine'
+            args '-p 3000:3000'
         }
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'nodejs-docker-task', url: 'https://github.com/Uliwazeer/Task'
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
         }
 
+        stage('Run Tests') {
+            steps {
+                sh 'npm test || echo "No tests configured"'
+            }
+        }
+
         stage('Build') {
             steps {
-                sh 'npm run build || echo "No build step defined"'
+                sh 'npm run build'
             }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'npm test || echo "No tests defined"'
-            }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ Pipeline succeeded!'
-        }
-        failure {
-            echo '❌ Pipeline failed.'
         }
     }
 }
